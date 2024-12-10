@@ -15,7 +15,6 @@ class User
     {
         $errors = DataPostValidator::validate($_POST, ['email', 'firstname', 'lastname', 'pwd', 'pwdConfirme'], 5);
         if (empty($errors)) {
-            var_dump("coucou");
             $user = new UserModel();
             $user->setFirstname($_POST['firstname']);
             $user->setLastname($_POST['lastname']);
