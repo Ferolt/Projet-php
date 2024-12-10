@@ -3,7 +3,8 @@ namespace App\Controllers;
 
 use App\Core\User as U;
 use App\Core\View;
-use App\Core\SQL; 
+use App\Core\SQL;
+use PDOException;
 
 class User
 {
@@ -47,36 +48,52 @@ public function register(): void
 
             $query = "INSERT INTO user (email, password, firstname, lastname, country) VALUES (:email, :password, :firstname, :lastname, :country)";
             $stmt = $db->getPdo()->prepare($query);
-            $stmt->execute([
-                'email' => $email,
-                'password' => $hashedPassword,
-                'firstname' => $firstname,
-                'lastname' => $lastname,
-                'country' => $country,
-            ]);
-            header("Location: /se-connecter");
-            exit();
+            try {
+                $db->getPdo()->beginTransaction();
+                $stmt->execute([
+                    'email' => $email,
+                    'password' => $hashedPassword,
+                    'firstname' => $firstname,
+                    'lastname' => $lastname,
+                    'country' => $country,
+                ]);
+                $id = $db->getPdo()->lastInsertId();
+                session_start();
+                $_SESSION["user_id"] = $id;
+                $_SESSION["user_firstname"] = $firstname;
+                $_SESSION["user_lastname"] = $lastname;
+                header("Location: /Home");
+                exit();
+            }catch( PDOException $e) {
+                $errors[] = $e;
+                $view = new View("User/register.php", "front.php");
+                $view->addData('errors', $errors);
+                return;                
+            }
+          
         } else {
-            $view = new View("User/register.php", "back.php");
+            $view = new View("User/register.php", "front.php");
             $view->addData('errors', $errors);
             return;
         }
     }
-        $view = new View("User/register.php", "back.php");
+        $view = new View("User/register.php", "front.php");
         echo $view;
     }
 
     public function login(): void
     {
-        echo "Se connecter";
+        new View("User/login.php", "front.php");
     }
 
 
     public function logout(): void
     {
         $user = new U();
+        session_start();
         $user->logout();
-        echo "Déconnexion";
+        header("Location: /se-connecter");
+        return;
     }
 
 }

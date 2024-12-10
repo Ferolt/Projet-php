@@ -1,4 +1,4 @@
-/user/add:
+/cree-un-compte:
   controller: "User"
   action: "register"
 
@@ -17,3 +17,7 @@
 /page:
   controller: "page"
   action: "show"
+
+/home:
+  controller: "HomeController"
+  action: "index"
