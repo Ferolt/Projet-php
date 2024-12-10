@@ -1,4 +1,4 @@
-/user/add:
+/cree-un-compte:
   controller: "User"
   action: "register"
 
@@ -10,10 +10,6 @@
   controller: "User"
   action: "logout"
 
-/cree-un-compte:
-  controller: "User"
-  action: "register"
-
 /backoffice:
   controller: "Backoffice"
   action: "dashboard"
@@ -21,3 +17,7 @@
 /page:
   controller: "page"
   action: "show"
+
+/home:
+  controller: "HomeController"
+  action: "index"

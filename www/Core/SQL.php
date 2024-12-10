@@ -10,9 +10,15 @@ class SQL
     public function __construct(){
         try{
             $this->pdo = new \PDO("mysql:host=mariadb;dbname=esgi","esgi","esgipwd");
+            return $this->pdo;
         }catch(\Exception $e){
             die("Erreur SQL :".$e->getMessage());
         }
+    }
+
+        public function getPdo()
+    {
+        return $this->pdo;
     }
 
     public function getOneById(string $table,int $id): array

@@ -2,12 +2,16 @@
 
 namespace App\Model;
 
+use App\Core\SQL;
+use PDOException;
+
 class UserModel
 {
     private String $firstname;
     private String $lastname;
     private String $email;
     private String $pwd;
+    private string $country;
 
 
     /**
@@ -71,6 +75,62 @@ class UserModel
      */
     public function setPwd(string $pwd): void
     {
-        $this->pwd = password_hash($pwd, PASSWORD_DEFAULT);
+        $this->pwd = password_hash($pwd, PASSWORD_BCRYPT);
+    }
+
+    /**
+     * @return String
+     */
+    public function getCountry(): string
+    {
+        return $this->country;
+    }
+
+    /**
+     * @param String $pwd
+     */
+    public function setCountry(string $country): void
+    {
+        $this->country = $country;
+    }
+
+    public function save()
+    {
+        $db = new SQL();
+        $stmt = $db->getPdo()->prepare("
+            INSERT INTO user (
+                email, 
+                password, 
+                firstname, 
+                lastname, 
+                country) 
+            VALUES (
+                :email, 
+                :password, 
+                :firstname, 
+                :lastname, 
+                :country
+            )
+        ");
+
+        try {
+            $db->getPdo()->beginTransaction();
+
+            $stmt->execute([
+                'email' => $this->email,
+                'password' => $this->pwd,
+                'firstname' => $this->firstname,
+                'lastname' => $this->lastname,
+                'country' => $this->country,
+            ]);
+
+            // $db->getPdo()->commit();
+            $id = $db->getPdo()->lastInsertId();
+
+            return ["error" => false, "user_id" => $id];
+
+        } catch (PDOException $e) {
+            return ["error" => true, "msg" => $e];
+        }
     }
 }
