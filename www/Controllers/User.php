@@ -3,8 +3,7 @@ namespace App\Controllers;
 
 use App\Core\User as U;
 use App\Core\View;
-use App\Core\SQL;
-use PDOException;
+use App\Core\SQL; 
 
 class User
 {
@@ -48,36 +47,22 @@ public function register(): void
 
             $query = "INSERT INTO user (email, password, firstname, lastname, country) VALUES (:email, :password, :firstname, :lastname, :country)";
             $stmt = $db->getPdo()->prepare($query);
-            try {
-                $db->getPdo()->beginTransaction();
-                $stmt->execute([
-                    'email' => $email,
-                    'password' => $hashedPassword,
-                    'firstname' => $firstname,
-                    'lastname' => $lastname,
-                    'country' => $country,
-                ]);
-                $id = $db->getPdo()->lastInsertId();
-                session_start();
-                $_SESSION["user_id"] = $id;
-                $_SESSION["user_firstname"] = $firstname;
-                $_SESSION["user_lastname"] = $lastname;
-                header("Location: /Home");
-                exit();
-            }catch( PDOException $e) {
-                $errors[] = $e;
-                $view = new View("User/register.php", "front.php");
-                $view->addData('errors', $errors);
-                return;                
-            }
-          
+            $stmt->execute([
+                'email' => $email,
+                'password' => $hashedPassword,
+                'firstname' => $firstname,
+                'lastname' => $lastname,
+                'country' => $country,
+            ]);
+            header("Location: /se-connecter");
+            exit();
         } else {
-            $view = new View("User/register.php", "front.php");
+            $view = new View("User/register.php", "back.php");
             $view->addData('errors', $errors);
             return;
         }
     }
-        $view = new View("User/register.php", "front.php");
+        $view = new View("User/register.php", "back.php");
         echo $view;
     }
 
@@ -103,8 +88,8 @@ public function register(): void
                     session_start();
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['email'] = $user['email'];
-
-                    header("Location: /dashboard");
+                       $_SESSION['user_firstname'] = $user['firstname'];
+                    header("Location: /");
                     exit();
                 } else {
                     $errors[] = "Identifiants incorrects.";
@@ -117,6 +102,11 @@ public function register(): void
         $view = new View("User/login.php", "back.php");
         echo $view;
     }
+
+
+    
+
+
 
     public function logout(): void
     {
