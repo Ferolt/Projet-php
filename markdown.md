@@ -1,8 +1,9 @@
 
 # Cree la table user
 
-`docker exec -it projet-php-web-1 php Migration/UserMigration.php up` 
+`docker exec -it [ le nom de votre container ] php Migration/UserMigration.php up` 
 
 # supprimer la table user
 
-`docker exec -it projet-php-web-1 php Migration/UserMigration.php down`
+`docker exec -it [ le nom de votre container ] php Migration/UserMigration.php down`
+  
