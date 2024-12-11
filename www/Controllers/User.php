@@ -2,8 +2,6 @@
 
 namespace App\Controllers;
 
-use App\Core\SQL;
-use PDOException;
 use App\Core\View;
 use App\Core\User as U;
 use App\Model\UserModel;
@@ -16,7 +14,10 @@ class User
     public function register(): void
     {
         $errors = [];
-
+        if(count($_POST) == 0) {
+            $view = new View("User/register.php", "front.php");
+            return;
+        }
         $errors = DataPostValidator::validate(
             $_POST,
             [
@@ -41,7 +42,7 @@ class User
             $validator = new UserValidator($user, $_POST['passwordConfirm']); //valide les données de chaque champ
 
             if (empty($validator->getErrors())) {
-                $array_data = $user->save();
+                $array_data = $user->save(); //return un taleau d'erreur ou id
                 if (!$array_data["error"]) {
                     session_start();
                     $_SESSION["user_id"] = $array_data["user_id"];

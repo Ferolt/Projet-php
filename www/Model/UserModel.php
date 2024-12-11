@@ -13,7 +13,6 @@ class UserModel
     private String $pwd;
     private string $country;
 
-
     /**
      * @return String
      */
@@ -114,8 +113,6 @@ class UserModel
         ");
 
         try {
-            $db->getPdo()->beginTransaction();
-
             $stmt->execute([
                 'email' => $this->email,
                 'password' => $this->pwd,
@@ -124,10 +121,12 @@ class UserModel
                 'country' => $this->country,
             ]);
 
-            // $db->getPdo()->commit();
-            $id = $db->getPdo()->lastInsertId();
-
-            return ["error" => false, "user_id" => $id];
+            $stmt = $db->getPdo()->prepare("SELECT id FROM user WHERE email = :email");
+            $stmt->execute([
+                "email" => $this->email
+            ]);
+            $id = $stmt->fetch();
+            return ["error" => false, "user_id" => $id['id']];
 
         } catch (PDOException $e) {
             return ["error" => true, "msg" => $e];
