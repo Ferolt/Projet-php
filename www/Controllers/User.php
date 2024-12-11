@@ -66,9 +66,41 @@ public function register(): void
         echo $view;
     }
 
-    public function login(): void
+ public function login(): void
     {
-        echo "Se connecter";
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+            $email = trim($_POST['email']);
+            $password = $_POST['password'];
+
+            $errors = [];
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors[] = "Email invalide.";
+            }
+            if (empty($errors)) {
+                $db = new SQL();
+                $query = "SELECT * FROM user WHERE email = :email";
+                $stmt = $db->getPdo()->prepare($query);
+                $stmt->execute(['email' => $email]);
+                $user = $stmt->fetch();
+
+                if ($user && password_verify($password, $user['password'])) {
+                    session_start();
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['email'] = $user['email'];
+
+                    header("Location: /dashboard");
+                    exit();
+                } else {
+                    $errors[] = "Identifiants incorrects.";
+                }
+            }
+            $view = new View("User/login.php", "back.php");
+            $view->addData('errors', $errors);
+            return;
+        }
+        $view = new View("User/login.php", "back.php");
+        echo $view;
     }
 
 
