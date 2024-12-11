@@ -7,6 +7,8 @@ use App\Core\User as U;
 use App\Model\UserModel;
 use App\Validator\UserValidator;
 use App\Validator\DataPostValidator;
+use App\Core\SQL;
+use App\Session\UserSession;
 
 class User
 {
@@ -44,12 +46,12 @@ class User
             if (empty($validator->getErrors())) {
                 $array_data = $user->save(); //return un taleau d'erreur ou id
                 if (!$array_data["error"]) {
-                    session_start();
-                    $_SESSION["user_id"] = $array_data["user_id"];
-                    $_SESSION["user_firstname"] = $user->getFirstname();
-                    $_SESSION["user_lastname"] = $user->getLastname();
-                    header("Location: /Home");
-                    return;
+                    $isStarted = UserSession::startUserSession($array_data['user_id'], $user->getFirstname(), $user->getLastname());
+                    if($isStarted) {
+                        header("Location: /");
+                        return;
+                    }
+                    $errors[] = "problème de session";
                 }
 
                 $errors[] = "L'email est déjà utilser";
@@ -62,11 +64,41 @@ class User
         return;
     }
 
-    public function login(): void
+ public function login(): void
     {
-        new View("User/login.php", "front.php");
-    }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+            $email = trim($_POST['email']);
+            $password = $_POST['password'];
+
+            $errors = [];
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors[] = "Email invalide.";
+            }
+            if (empty($errors)) {
+                $db = new SQL();
+                $query = "SELECT * FROM user WHERE email = :email";
+                $stmt = $db->getPdo()->prepare($query);
+                $stmt->execute(['email' => $email]);
+                $user = $stmt->fetch();
+
+                if ($user && password_verify($password, $user['password'])) {
+                    $isStarted = UserSession::startUserSession($user['id'], $user['firstname'], $user['lastname']);
+                    if($isStarted) {
+                        header("Location: /");
+                        return;
+                    }
+                } else {
+                    $errors[] = "Identifiants incorrects.";
+                }
+            }
+            $view = new View("User/login.php", "back.php");
+            $view->addData('errors', $errors);
+            return;
+        }
+        $view = new View("User/login.php", "back.php");
+        echo $view;
+    }
 
     public function logout(): void
     {
